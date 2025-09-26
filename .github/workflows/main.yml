@@ -2,33 +2,31 @@ name: OWASP ZAP Scan
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-  zap_scan:
+  zap-scan:
     runs-on: ubuntu-latest
-
-    services:
-      juice-shop:
-        image: bkimminich/juice-shop
-        ports:
-          - 3000:3000
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Start Juice Shop
+        run: |
+          docker run -d --name juice-shop -p 3000:3000 bkimminich/juice-shop
 
       - name: Wait for Juice Shop to be ready
         run: |
-          echo "Waiting for Juice Shop to start..."
+          echo "Waiting for Juice Shop..."
           for i in {1..30}; do
             if curl -s http://localhost:3000 > /dev/null; then
               echo "Juice Shop is up!"
               break
             fi
-            echo "Still starting... waiting 5s"
+            echo "Retrying in 5s..."
             sleep 5
           done
 
@@ -36,18 +34,17 @@ jobs:
         run: |
           mkdir -p zap-reports
           chmod 777 zap-reports
-          docker run --rm --network host \
-            -v "$(pwd)/zap-reports:/zap/wrk:rw" \
-            -u root \
-            --security-opt seccomp=unconfined \
-            ghcr.io/zaproxy/zaproxy:stable \
-            python3 /zap/zap-baseline.py \
-              -t http://localhost:3000 \
-              -r /zap/wrk/zap-report.html \
-              -I || echo "ZAP scan completed"
+          docker run --network host \
+            -v "$(pwd)/zap-reports:/zap/wrk" \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://localhost:3000 \
+            -r zap-report.html || true
 
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-reports
-          path: zap-reports/
+          path: |
+            zap-reports/
+            zap-workspace/
+         
