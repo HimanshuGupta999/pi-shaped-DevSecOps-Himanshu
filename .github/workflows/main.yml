@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "Running OWASP ZAP baseline scan"
           docker run --rm \
-            -v $(pwd)/zap-workspace:/zap/wrk:rw \
+            -v $(pwd)/zap-workspace:/zap:rw \
             --network host \
             -u root \
             --security-opt seccomp=unconfined \
@@ -57,16 +57,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-report-html
-          path: zap-workspace/zap-baseline-report.html
+          path: zap-workspace/wrk/zap-baseline-report.html
 
       - name: Upload ZAP Report (JSON)
         uses: actions/upload-artifact@v4
         with:
           name: zap-report-json
-          path: zap-workspace/zap-baseline-report.json
+          path: zap-workspace/wrk/zap-baseline-report.json
 
       - name: Upload ZAP Report (Markdown)
         uses: actions/upload-artifact@v4
         with:
           name: zap-report-md
-          path: zap-workspace/zap-baseline-report.md
+          path: zap-workspace/wrk/zap-baseline-report.md
