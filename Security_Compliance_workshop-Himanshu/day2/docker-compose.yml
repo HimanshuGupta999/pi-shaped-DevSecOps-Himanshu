@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  juice-shop:
+    image: bkimminich/juice-shop
+    container_name: juice-shop
+    ports:
+      - "3000:3000"
+    restart: "no"
+
+  zap:
+    image: owasp/zap2docker-stable
+    container_name: zap-scanner
+    depends_on:
+      - juice-shop
+    entrypoint: >
+      /bin/sh -c
+      "sleep 8 &&
+       zap-baseline.py -t http://juice-shop:3000 -r /zap/wrk/zap-report.html -J /zap/wrk/zap-report.json"
+    volumes:
+      - ./zap-output:/zap/wrk
