@@ -15,7 +15,7 @@ jobs:
         image: bkimminich/juice-shop
         ports:
           - 3000:3000
-        options: "--health-cmd='exit 0'" # Disable strict healthcheck
+        options: --health-cmd=exit\ 0  # Fixed invalid reference format
 
     steps:
       - name: Checkout repository
