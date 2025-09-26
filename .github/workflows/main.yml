@@ -22,8 +22,8 @@ jobs:
 
       - name: Create ZAP workspace
         run: |
-          mkdir -p zap-workspace
-          chmod 777 zap-workspace
+          mkdir -p zap-workspace/wrk
+          chmod -R 777 zap-workspace
 
       - name: Wait for Juice Shop to be ready
         run: |
@@ -37,7 +37,7 @@ jobs:
             sleep 5
           done
 
-      - name: Run ZAP Scan
+      - name: Run ZAP Baseline Scan
         run: |
           echo "Running OWASP ZAP baseline scan"
           docker run --rm \
@@ -45,13 +45,13 @@ jobs:
             --network host \
             -u root \
             --security-opt seccomp=unconfined \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
-            -t http://localhost:8080 \
-            -r /zap/wrk/zap-baseline-report.html \
-            -J /zap/wrk/zap-baseline-report.json \
-            -w /zap/wrk/zap-baseline-report.md \
-            -I || echo "ZAP scan completed"
+            owasp/zap2docker-stable \
+            python3 /zap/zap-baseline.py \
+              -t http://localhost:8080 \
+              -r /zap/wrk/zap-baseline-report.html \
+              -J /zap/wrk/zap-baseline-report.json \
+              -w /zap/wrk/zap-baseline-report.md \
+              -I || echo "ZAP scan completed"
 
       - name: Upload ZAP Report (HTML)
         uses: actions/upload-artifact@v4
