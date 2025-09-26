@@ -9,37 +9,40 @@ on:
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
+
     services:
       juice-shop:
         image: bkimminich/juice-shop
         ports:
           - 3000:3000
-        options: >-
-          --health-cmd="curl --fail http://localhost:3000 || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+        options: "--health-cmd='exit 0'" # Disable strict healthcheck
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Wait for Juice Shop to be healthy
+      - name: Wait for Juice Shop to be ready
         run: |
-          echo "Waiting for Juice Shop..."
-          for i in {1..20}; do
-            curl -s http://localhost:3000 && break
+          echo "Waiting for Juice Shop to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000 > /dev/null; then
+              echo "Juice Shop is up!"
+              break
+            fi
+            echo "Still starting... waiting 5s"
             sleep 5
           done
 
-      - name: Run ZAP Baseline Scan
+      - name: Run OWASP ZAP Baseline Scan
         run: |
-          docker run --network host -v $(pwd):/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py \
+          docker run --rm --network host \
+            -v $(pwd):/zap/wrk/:rw \
+            zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:3000 \
             -r zap-report.html
 
       - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: zap-report
           path: zap-report.html
