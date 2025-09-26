@@ -39,6 +39,7 @@ jobs:
         run: |
           docker run --rm --network host \
             -v $(pwd)/zap-output:/zap/wrk:rw \
+            -e ZAP_HOME=/zap/wrk \
             -u $(id -u):$(id -g) \
             zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:3000 \
@@ -46,7 +47,7 @@ jobs:
             -d
 
       - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4
         with:
           name: zap-report
           path: zap-output/zap-report.html
