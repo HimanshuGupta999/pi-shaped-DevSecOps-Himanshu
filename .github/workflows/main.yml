@@ -1,0 +1,45 @@
+name: OWASP ZAP Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    services:
+      juice-shop:
+        image: bkimminich/juice-shop
+        ports:
+          - 3000:3000
+        options: >-
+          --health-cmd="curl --fail http://localhost:3000 || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Wait for Juice Shop to be healthy
+        run: |
+          echo "Waiting for Juice Shop..."
+          for i in {1..20}; do
+            curl -s http://localhost:3000 && break
+            sleep 5
+          done
+
+      - name: Run ZAP Baseline Scan
+        run: |
+          docker run --network host -v $(pwd):/zap/wrk/:rw zaproxy/zap-stable zap-baseline.py \
+            -t http://localhost:3000 \
+            -r zap-report.html
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-report.html
