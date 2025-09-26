@@ -20,8 +20,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Prepare output folder
-        run: mkdir -p zap-output
+      - name: Create ZAP workspace
+        run: |
+          mkdir -p zap-workspace
+          chmod 777 zap-workspace
 
       - name: Wait for Juice Shop to be ready
         run: |
@@ -38,7 +40,7 @@ jobs:
       - name: Run OWASP ZAP Baseline Scan
         run: |
           docker run --rm --network host \
-            -v $(pwd)/zap-output:/zap/wrk:rw \
+            -v $(pwd)/zap-workspace:/zap/wrk:rw \
             -e ZAP_HOME=/zap/wrk \
             -u $(id -u):$(id -g) \
             zaproxy/zap-stable zap-baseline.py \
@@ -50,4 +52,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: zap-output/zap-report.html
+          path: zap-workspace/zap-report.html
