@@ -14,22 +14,17 @@ jobs:
       juice-shop:
         image: bkimminich/juice-shop
         ports:
-          - 8080:3000
+          - 3000:3000
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Create ZAP workspace
-        run: |
-          mkdir -p zap-workspace/wrk
-          chmod -R 777 zap-workspace
-
       - name: Wait for Juice Shop to be ready
         run: |
           echo "Waiting for Juice Shop to start..."
           for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
+            if curl -s http://localhost:3000 > /dev/null; then
               echo "Juice Shop is up!"
               break
             fi
@@ -37,36 +32,22 @@ jobs:
             sleep 5
           done
 
-      - name: Run ZAP Baseline Scan
+      - name: Run OWASP ZAP Baseline Scan
         run: |
-          echo "Running OWASP ZAP baseline scan"
-          docker run --rm \
-            -v $(pwd)/zap-workspace:/zap:rw \
-            --network host \
+          mkdir -p zap-reports
+          chmod 777 zap-reports
+          docker run --rm --network host \
+            -v "$(pwd)/zap-reports:/zap/wrk:rw" \
             -u root \
             --security-opt seccomp=unconfined \
-            owasp/zap2docker-stable \
+            ghcr.io/zaproxy/zaproxy:stable \
             python3 /zap/zap-baseline.py \
-              -t http://localhost:8080 \
-              -r /zap/wrk/zap-baseline-report.html \
-              -J /zap/wrk/zap-baseline-report.json \
-              -w /zap/wrk/zap-baseline-report.md \
+              -t http://localhost:3000 \
+              -r /zap/wrk/zap-report.html \
               -I || echo "ZAP scan completed"
 
-      - name: Upload ZAP Report (HTML)
+      - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report-html
-          path: zap-workspace/wrk/zap-baseline-report.html
-
-      - name: Upload ZAP Report (JSON)
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report-json
-          path: zap-workspace/wrk/zap-baseline-report.json
-
-      - name: Upload ZAP Report (Markdown)
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report-md
-          path: zap-workspace/wrk/zap-baseline-report.md
+          name: zap-security-reports
+          path: zap-reports/
