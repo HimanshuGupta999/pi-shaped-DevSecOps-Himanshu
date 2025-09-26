@@ -20,6 +20,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Prepare output folder
+        run: mkdir -p zap-output
+
       - name: Wait for Juice Shop to be ready
         run: |
           echo "Waiting for Juice Shop to start..."
@@ -32,16 +35,15 @@ jobs:
             sleep 5
           done
 
-      - name: Prepare output folder
-        run: mkdir -p zap-output
-
       - name: Run OWASP ZAP Baseline Scan
         run: |
           docker run --rm --network host \
             -v $(pwd)/zap-output:/zap/wrk:rw \
+            -u $(id -u):$(id -g) \
             zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:3000 \
-            -r /zap/wrk/zap-report.html
+            -r /zap/wrk/zap-report.html \
+            -d
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
