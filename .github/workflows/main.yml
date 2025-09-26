@@ -32,16 +32,19 @@ jobs:
             sleep 5
           done
 
+      - name: Prepare output folder
+        run: mkdir -p zap-output
+
       - name: Run OWASP ZAP Baseline Scan
         run: |
           docker run --rm --network host \
-            -v $(pwd):/zap/wrk/:rw \
+            -v $(pwd)/zap-output:/zap/wrk:rw \
             zaproxy/zap-stable zap-baseline.py \
             -t http://localhost:3000 \
-            -r zap-report.html
+            -r /zap/wrk/zap-report.html
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: zap-report.html
+          path: zap-output/zap-report.html
