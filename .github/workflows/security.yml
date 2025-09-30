@@ -26,14 +26,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        working-directory: Security_Compliance_workshop-aman/day3
+        working-directory: Security_Compliance_workshop-Himanshu/day3
 
       - name: Run Bandit (Python SAST)
         id: bandit
         run: |
           pip install bandit
           bandit -r . -f html -o bandit-report.html || true
-        working-directory: Security_Compliance_workshop-aman/day3
+        working-directory: Security_Compliance_workshop-Himanshu/day3
         shell: bash
         continue-on-error: true
 
@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bandit-report
-          path: Security_Compliance_workshop-aman/day3/bandit-report.html
+          path: Security_Compliance_workshop-Himanshu/day3/bandit-report.html
 
       - name: Run Semgrep (Default Behavior)
         id: semgrep
@@ -94,7 +94,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        working-directory: Security_Compliance_workshop-aman/day3
+        working-directory: Security_Compliance_workshop-Himanshu/day3
 
       - name: Start Flask App
         run: |
@@ -102,7 +102,7 @@ jobs:
           echo "Waiting for app to start..."
           sleep 15
           curl --fail http://localhost:5000
-        working-directory: Security_Compliance_workshop-aman/day3
+        working-directory: Security_Compliance_workshop-Himanshu/day3
         shell: bash
 
       - name: Show logs on failure
@@ -110,7 +110,7 @@ jobs:
         run: |
           echo "--- App failed to start. Displaying logs from app.log: ---"
           cat app.log
-        working-directory: Security_Compliance_workshop-aman/day3
+        working-directory: Security_Compliance_workshop-Himanshu/day3
 
       - name: Run ZAP Baseline Scan via Docker
         continue-on-error: true
