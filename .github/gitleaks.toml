@@ -1,0 +1,4 @@
+[[rules]]
+description = "Hardcoded API Key"
+regex = '''(api_key|secret_key|password)\s*=\s*['"][\w\d]{16,}['"]'''
+tags = ["key", "API"]
